@@ -1,8 +1,7 @@
 require("dotenv").config();
 import express, { NextFunction, Request, Response } from "express";
-export const app = express();
 import cors from "cors";
-import cookieParser from "cookie-parser";
+// import cookieParser from "cookie-parser";
 import { ErrorMiddleware } from "./middleware/error";
 import userRouter from "./routes/user.route";
 import courseRouter from "./routes/course.route";
@@ -12,11 +11,12 @@ import analyticsRouter from "./routes/analytics.route";
 import layoutRouter from "./routes/layout.route";
 import { rateLimit } from "express-rate-limit";
 
+export const app = express();
 // body parser
 app.use(express.json({ limit: "50mb" }));
 
 // cookie parser
-app.use(cookieParser());
+// app.use(cookieParser());
 
 // cors => cross origin resource sharing
 app.use(cors(
