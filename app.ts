@@ -18,13 +18,24 @@ app.use(express.json({ limit: "50mb" }));
 // cookie parser
 // app.use(cookieParser());
 
-// cors => cross origin resource sharing
-app.use(cors(
-  {
-    origin:process.env.CORS_ORIGIN,
-    credentials: true
-  }
-));
+const allowedOrigins = [
+  'http://localhost:3000', // Local development
+  'https://your-production-frontend-url.com', // Your deployed frontend
+];
+
+const corsOptions = {
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // Allow credentials if needed (cookies, etc.)
+};
+
+app.use(cors(corsOptions));
 
 // api requests limit
 const limiter = rateLimit({
