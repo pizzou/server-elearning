@@ -9,7 +9,7 @@ import orderRouter from "./routes/order.route";
 import notificationRouter from "./routes/notification.route";
 import analyticsRouter from "./routes/analytics.route";
 import layoutRouter from "./routes/layout.route";
-import { rateLimit } from "express-rate-limit";
+import rateLimit from "express-rate-limit";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -19,48 +19,6 @@ export const app = express();
 
 // Body parser middleware
 app.use(express.json({ limit: "50mb" }));
-
-// Setup CORS
-const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",") : [];
-
-app.use(cors({
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // Allow requests with no origin (e.g., mobile apps or curl requests) or check if origin is allowed
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true, // Allow credentials for cookie-based sessions
-}));
-
-// Preflight CORS header handling
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS,POST,PUT,DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  
-  // Handle preflight OPTIONS request
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-
-  next();
-});
-
-// Log CORS headers and origin
-app.use((req, res, next) => {
-  console.log('Request Origin:', req.headers.origin);
-  console.log('CORS Headers Set:', res.get('Access-Control-Allow-Origin'));
-  next();
-});
 
 // Rate limiting middleware
 const limiter = rateLimit({
@@ -72,6 +30,40 @@ const limiter = rateLimit({
 
 // Apply rate limiter to all requests
 app.use(limiter);
+
+// Setup CORS
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map(origin => origin.trim())
+  : [];
+
+// Configure CORS options
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true, // Allow credentials (cookies, authorization headers, TLS client certificates)
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Handle preflight requests for all routes
+app.options('*', cors(corsOptions));
+
+// Logging middleware (for debugging purposes)
+app.use((req, res, next) => {
+  console.log('Request Origin:', req.headers.origin);
+  console.log('Access-Control-Allow-Origin:', res.get('Access-Control-Allow-Origin'));
+  next();
+});
 
 // Define routes
 app.use(
@@ -85,7 +77,7 @@ app.use(
 );
 
 // Test route for health check
-app.get("/test", (req: Request, res: Response, next: NextFunction) => {
+app.get("/test", (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     message: "API is working",
