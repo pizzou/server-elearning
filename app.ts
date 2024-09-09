@@ -53,6 +53,23 @@ app.options('*', cors({
   origin: allowedOrigins,
   credentials: true,
 }));
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+
+  res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200); // Return a successful preflight response
+  }
+
+  next();
+});
 // Define routes
 app.use(
   "/api/v1",
