@@ -31,41 +31,28 @@ const limiter = rateLimit({
 // Apply rate limiter to all requests
 app.use(limiter);
 
-// Setup CORS
-const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",") : [];
+// Allowed origins
+const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",") : ["http://localhost:3000"];
 
+// CORS middleware
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true); // Allow origin if it matches or if no origin is provided (e.g., Postman)
+      callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error("Not allowed by CORS"));
     }
   },
+  credentials: true, // Enable credentials to allow cookies
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true, // Allow cookies/sessions
 }));
 
-// Apply CORS middleware
-app.options('*', (req, res) => {
-  const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
-  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.sendStatus(200); // Respond with 200 OK for preflight requests
-});
-
-// Logging middleware (for debugging purposes)
-app.use((req, res, next) => {
-  console.log('Request Origin:', req.headers.origin);
-  console.log('Access-Control-Allow-Origin:', res.get('Access-Control-Allow-Origin'));
-  next();
-});
-
+// Preflight requests
+app.options('*', cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 // Define routes
 app.use(
   "/api/v1",
