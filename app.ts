@@ -31,45 +31,27 @@ const limiter = rateLimit({
 // Apply rate limiter to all requests
 app.use(limiter);
 
-// Allowed origins
 const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",") : ["http://localhost:3000"];
 
-// CORS middleware
+// Configure CORS middleware
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true, // Enable credentials to allow cookies
+  credentials: true, // Allow credentials (cookies)
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Preflight requests
+// Handle preflight requests
 app.options('*', cors({
   origin: allowedOrigins,
   credentials: true,
 }));
-
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
-
-  res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200); // Return a successful preflight response
-  }
-
-  next();
-});
 // Define routes
 app.use(
   "/api/v1",
