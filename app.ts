@@ -31,9 +31,9 @@ const limiter = rateLimit({
 // Apply rate limiter to all requests
 app.use(limiter);
 
-const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",") : ["http://localhost:3000"];
+const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:3000'];
 
-// Configure CORS middleware
+// Configure CORS
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -42,16 +42,13 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true, // Allow credentials (cookies)
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 }));
 
 // Handle preflight requests
-app.options('*', cors({
-  origin: allowedOrigins,
-  credentials: true,
-}));
+app.options('*', cors());
 // Define routes
 app.use(
   "/api/v1",
