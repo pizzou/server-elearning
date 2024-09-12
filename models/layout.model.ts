@@ -1,56 +1,64 @@
-import {Schema,model,Document} from "mongoose";
+import { Schema, model, Document } from "mongoose";
 
-export interface FaqItem extends Document{
-    question: string;
-    answer: string;
+// Define the FAQ interface
+export interface FaqItem extends Document {
+  question: string;
+  answer: string;
 }
 
-export interface Category extends Document{
-    title:string;
+// Define the Category interface
+export interface Category extends Document {
+  title: string;
 }
 
-export interface BannerImage extends Document{
-    public_id:string;
-    url: string;
+// Define the BannerImage interface
+export interface BannerImage extends Document {
+  public_id: string;
+  url: string;
 }
 
-interface Layout extends Document{
-    type: string;
-    faq: FaqItem[];
-    categories: Category[];
-    banner:{
-        image: BannerImage;
-        title: string;
-        subTitle: string;
-    };
+// Define the main Layout interface
+interface Layout extends Document {
+  type: string;
+  faq?: FaqItem[]; // Optional field
+  categories?: Category[]; // Optional field
+  banner?: {
+    image: BannerImage;
+    title: string;
+    subTitle: string;
+  }; // Optional field
 }
 
-const faqSchema = new Schema<FaqItem> ({
-    question: {type: String},
-    answer: {type: String},
+// Define the FAQ schema
+const faqSchema = new Schema<FaqItem>({
+  question: { type: String, required: true },
+  answer: { type: String, required: true },
 });
 
-const categorySchema = new Schema<Category> ({
-    title: {type:String},
+// Define the Category schema
+const categorySchema = new Schema<Category>({
+  title: { type: String, required: true },
 });
 
-const bannerImageSchema = new Schema<BannerImage> ({
-    public_id: {type:String},
-    url: {type:String},
+// Define the BannerImage schema
+const bannerImageSchema = new Schema<BannerImage>({
+  public_id: { type: String, required: true },
+  url: { type: String, required: true },
 });
 
-
+// Define the Layout schema
 const layoutSchema = new Schema<Layout>({
-   type:{type:String},
-   faq: [faqSchema],
-   categories: [categorySchema],
-   banner:{
+  type: { type: String, required: true }, // The type field is always required
+  faq: [faqSchema], // Array of FAQs
+  categories: [categorySchema], // Array of Categories
+  banner: {
     image: bannerImageSchema,
-    title: {type:String},
-    subTitle: {type:String},
-   },
+    title: { type: String, required: true },
+    subTitle: { type: String, required: true },
+  },
 });
 
-const LayoutModel = model<Layout>('Layout',layoutSchema);
+// Create and export the Layout model
+const LayoutModel = model<Layout>("Layout", layoutSchema);
 
 export default LayoutModel;
