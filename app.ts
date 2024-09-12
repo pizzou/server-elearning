@@ -18,10 +18,13 @@ app.use(express.json({ limit: "50mb" }));
 // cookie parser
 app.use(cookieParser());
 
-// cors => cross origin resource sharing
+// CORS configuration
+const allowedOrigins = ['http://localhost:3000'];
 const corsOptions = {
-  origin: 'http://localhost:3000', 
+  origin: allowedOrigins.filter(Boolean) as string[],  // filter out any undefined
   credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 
 // Use CORS middleware
