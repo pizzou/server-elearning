@@ -19,16 +19,12 @@ app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
 
 // CORS configuration
-const allowedOrigins = ['http://localhost:3000'];
-const corsOptions = {
-  origin: allowedOrigins.filter(Boolean) as string[],  // filter out any undefined
+app.use(cors({
+  origin: '*', // Allow all origins (only for testing, not recommended for production)
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
-
-// Use CORS middleware
-app.use(cors(corsOptions));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 // api requests limit
 const limiter = rateLimit({
