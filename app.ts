@@ -15,15 +15,24 @@ require("dotenv").config();
 export const app = express();
 
 // CORS configuration
+const allowedOrigins = ['http://localhost:3000', 'https://your-frontend.com'];
+
 const corsOptions = {
-  origin: ['http://localhost:3000'],  // Allow your frontend origin
-  credentials: true,
+  origin: (origin: string | undefined, callback: any) => {
+    if (origin && allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // Allow cookies and auth headers
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 204,
+  optionsSuccessStatus: 204, // For legacy browser support
 };
 
 app.use(cors(corsOptions));
+
 app.options('*', cors(corsOptions));
 
 // Body parser
