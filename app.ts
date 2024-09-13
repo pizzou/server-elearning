@@ -16,14 +16,15 @@ export const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: ['http://localhost:3000', 'https://your-frontend-domain.com'], // Adjust based on your needs
-  credentials: true, // Allow credentials (cookies, etc.)
+  origin: ['http://localhost:3000'],  // Allow your frontend origin
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 204,
 };
 
-// Use CORS middleware
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Body parser
 app.use(express.json({ limit: "50mb" }));
