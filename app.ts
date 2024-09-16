@@ -15,23 +15,20 @@ require("dotenv").config();
 export const app = express();
 
 // CORS configuration
-const whitelist = [
-  'http://localhost:3000',  // Development
-  'https://your-production-domain.com'  // Production
-];
 
 const corsOptions = {
-  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    if (!origin || whitelist.indexOf(origin) !== -1) {
-      callback(null, true); // Allow the request if origin is on the whitelist or undefined (for server-side calls)
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Specify allowed methods
+  credentials: true,  // Enable cookies or other credentials
 };
 
 app.use(cors(corsOptions));
+
+app.post('/api/v1/login', (req, res) => {
+  // Your login handler
+});
+
+
 // Body parser
 app.use(express.json({ limit: "50mb" }));
 
