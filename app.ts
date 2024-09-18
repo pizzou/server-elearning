@@ -17,24 +17,12 @@ dotenv.config();
 export const app = express();
 
 // CORS configuration
-const whitelist = [
-  'http://localhost:3000',  // Development
-  'https://your-production-domain.com',  // Production (add your production domain here)
-];
-
 const corsOptions = {
-  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    if (!origin || whitelist.includes(origin)) {
-      callback(null, true);  // Allow the request if origin is in the whitelist or undefined (for server-side requests)
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+  origin: ['http://localhost:3000', 'https://my-frontend-url.com'], // Allow local and deployed frontend URLs
   methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allowed methods
-  credentials: true,  // Allow credentials like cookies and authorization headers
+  credentials: true,  // Enable credentials (cookies, etc.)
 };
 
-// Apply CORS middleware
 app.use(cors(corsOptions));
 
 // Body parser middleware
