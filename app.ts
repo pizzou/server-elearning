@@ -15,12 +15,12 @@ require("dotenv").config();
 export const app = express();
 
 // CORS configuration
-app.use(cors(
-  {
-    origin: process.env.CORS_ORIGIN,
-    credentials: true
-  }
-))
+const corsOptions = {
+  origin: 'https://client-beta-navy.vercel.app', // Allow only your Vercel client
+  credentials: true, // Enable credentials if necessary
+};
+
+app.use(cors(corsOptions));
 // Body parser
 app.use(express.json({ limit: "50mb" }));
 
