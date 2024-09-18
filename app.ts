@@ -16,37 +16,34 @@ export const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: ['https://client-beta-navy.vercel.app'], // Allow Vercel client
-  credentials: true, // Allow credentials (cookies, authorization headers)
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // Allowed HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-refresh-token'], // Allowed headers
+  origin: ['https://client-beta-navy.vercel.app'], // Allow your Vercel client
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Specify allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
+  credentials: true, // Enable credentials (cookies, etc.)
+  optionsSuccessStatus: 200, // Some browsers (Safari) choke on 204 responses
 };
 
-// Apply CORS middleware
 app.use(cors(corsOptions));
 
-// Body parser to parse JSON request bodies
+// Body parser
 app.use(express.json({ limit: "50mb" }));
 
-// Cookie parser to parse cookies
+// Cookie parser
 app.use(cookieParser());
 
-// Rate limiting middleware to limit requests
+// Rate limiting middleware
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
-  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
-  legacyHeaders: false, // Disable `X-RateLimit-*` headers
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
-// Apply rate limiting middleware to all requests
+// Apply the rate limiter to all requests
 app.use(limiter);
 
 // Routes
 app.use("/api/v1", userRouter, orderRouter, courseRouter, notificationRouter, analyticsRouter, layoutRouter);
-
-// Preflight request handling for CORS (Optional)
-app.options('*', cors(corsOptions)); // Handle preflight requests for all routes
 
 // Handle unknown routes
 app.all("*", (req: Request, res: Response, next: NextFunction) => {
@@ -55,5 +52,5 @@ app.all("*", (req: Request, res: Response, next: NextFunction) => {
   next(err);
 });
 
-// Error handling middleware
+// Middleware to handle errors
 app.use(ErrorMiddleware);
