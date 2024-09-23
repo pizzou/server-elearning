@@ -19,10 +19,10 @@ require("dotenv").config();
 exports.app = (0, express_1.default)();
 // CORS configuration
 const corsOptions = {
-    origin: ['https://client-beta-navy.vercel.app'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
+    origin: ['https://client-beta-navy.vercel.app'], // Allow your Vercel client
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Specify allowed methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
+    credentials: true, // Enable credentials (cookies, etc.)
     optionsSuccessStatus: 200, // Some browsers (Safari) choke on 204 responses
 };
 exports.app.use((0, cors_1.default)(corsOptions));
@@ -32,9 +32,9 @@ exports.app.use(express_1.default.json({ limit: "50mb" }));
 exports.app.use((0, cookie_parser_1.default)());
 // Rate limiting middleware
 const limiter = (0, express_rate_limit_1.rateLimit)({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    standardHeaders: true,
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 // Apply the rate limiter to all requests

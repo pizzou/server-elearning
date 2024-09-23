@@ -17,9 +17,9 @@ const bannerImageSchema = new mongoose_1.Schema({
 });
 // Define the Layout schema
 const layoutSchema = new mongoose_1.Schema({
-    type: { type: String, required: true },
-    faq: [faqSchema],
-    categories: [categorySchema],
+    type: { type: String, required: true }, // The type field is always required
+    faq: [faqSchema], // Array of FAQs
+    categories: [categorySchema], // Array of Categories
     banner: {
         image: bannerImageSchema,
         title: { type: String, required: true },
