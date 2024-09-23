@@ -10,6 +10,6 @@ RUN npm install --omit=dev
 
 COPY . .
 
-EXPOSE 8080
+EXPOSE 8000
 
 CMD [ "node", "dist/server.js" ]
