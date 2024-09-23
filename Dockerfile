@@ -12,4 +12,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD [ "node", "dist/server.ts" ]
+CMD [ "node", "dist/server.js" ]
