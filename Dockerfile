@@ -3,13 +3,13 @@ FROM node:22.9.0
 ENV NODE_ENV=production
 
 # Set the working directory
-WORKDIR /app
+WORKDIR /usr/src/app
 
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install dependencies (including devDependencies)
-RUN npm install
+# Install only production dependencies
+RUN npm ci --only=production
 
 # Install TypeScript globally
 RUN npm install -g typescript
