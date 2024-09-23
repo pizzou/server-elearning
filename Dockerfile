@@ -1,5 +1,5 @@
 # Use Node.js v14
-FROM node:18.x
+FROM node:18.20.4
 ENV NODE_ENV=production
 
 WORKDIR /app
