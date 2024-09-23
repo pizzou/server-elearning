@@ -16,7 +16,7 @@ export const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: ['http://localhost:3000','https://client-7fuo.vercel.app/'], // Allow your Vercel client
+  origin: ['http://localhost:3000','https://client-6x3u.vercel.app/'], // Allow your Vercel client
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Specify allowed methods
   allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
   credentials: true, // Enable credentials (cookies, etc.)
