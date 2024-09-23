@@ -1,43 +1,57 @@
-require('dotenv').config();
-import nodemailer, {Transporter} from 'nodemailer';
+require('dotenv').config(); // Make sure .env variables are loaded
+
+import nodemailer, { Transporter } from 'nodemailer';
 import ejs from 'ejs';
 import path from 'path';
 
-interface EmailOptions{
-    email:string;
-    subject:string;
-    template:string;
-    data: {[key:string]:any};
+interface EmailOptions {
+    email: string;
+    subject: string;
+    template: string;
+    data: { [key: string]: any };
 }
 
-const sendMail = async (options: EmailOptions):Promise <void> => {
+const sendMail = async (options: EmailOptions): Promise<void> => {
+    // Create the transporter object using the correct host and port or service if needed
     const transporter: Transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        service: process.env.SMTP_SERVICE,
-        auth:{
-            user: process.env.SMTP_MAIL,
-            pass: process.env.SMTP_PASSWORD,
+        host: process.env.SMTP_HOST, // Custom SMTP server host
+        port: parseInt(process.env.SMTP_PORT || '587', 10), // Parse port safely with fallback
+        auth: {
+            user: process.env.SMTP_MAIL,  // Sender email address from environment
+            pass: process.env.SMTP_PASSWORD,  // Sender email password from environment
         },
     });
 
-    const {email,subject,template,data} = options;
+    const { email, subject, template, data } = options;
 
-    // get the pdath to the email template file
-    const templatePath = path.join(__dirname,'../mails',template);
+    // Path to the email template
+    const templatePath = path.join(__dirname, '../mails', template);
 
-    // Render the email template with EJS
-    const html:string = await ejs.renderFile(templatePath,data);
+    // Render the email template with EJS, catching potential errors
+    let html: string;
+    try {
+        html = await ejs.renderFile(templatePath, data);
+    } catch (error) {
+        console.error('Error rendering email template:', error);
+        throw new Error('Failed to render email template');
+    }
 
+    // Email options
     const mailOptions = {
-        from: process.env.SMTP_MAIL,
-        to: email,
-        subject,
-        html
+        from: process.env.SMTP_MAIL,  // Sender email address
+        to: email,  // Recipient email
+        subject,  // Email subject
+        html,  // Rendered HTML content
     };
 
-    await transporter.sendMail(mailOptions);
+    // Send email
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Email sent to ${email}`);
+    } catch (error) {
+        console.error('Error sending email:', error);
+        throw new Error('Failed to send email');
+    }
 };
 
 export default sendMail;
-
