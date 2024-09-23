@@ -15,15 +15,21 @@ require("dotenv").config();
 export const app = express();
 
 // CORS configuration
-const corsOptions = {
-  origin: ['http://localhost:3000','https://client-6x3u.vercel.app/'], // Allow your Vercel client
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Specify allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
-  credentials: true, // Enable credentials (cookies, etc.)
-  optionsSuccessStatus: 200, // Some browsers (Safari) choke on 204 responses
-};
+const allowedOrigins = [
+  // 'http://localhost:3000',        
+  'https://client-6x3u.vercel.app' // Deployed frontend on Vercel
+];
 
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // if your API uses cookies or authentication tokens
+}));
 
 // Body parser
 app.use(express.json({ limit: "50mb" }));
