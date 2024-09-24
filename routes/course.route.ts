@@ -13,19 +13,19 @@ import {
   getSingleCourse,
   uploadCourse,
 } from "../controllers/course.controller";
-import { authorizeRoles, isAutheticated } from "../middleware/auth";
+import { authorizeRoles, isAuthenticated } from "../middleware/auth";
 const courseRouter = express.Router();
 
 courseRouter.post(
   "/create-course",
-  isAutheticated,
+  isAuthenticated,
   authorizeRoles("admin"),
   uploadCourse
 );
 
 courseRouter.put(
   "/edit-course/:id",
-  isAutheticated,
+  isAuthenticated,
   authorizeRoles("admin"),
   editCourse
 );
@@ -36,22 +36,22 @@ courseRouter.get("/get-courses", getAllCourses);
 
 courseRouter.get(
   "/get-admin-courses",
-  isAutheticated,
+  isAuthenticated,
   authorizeRoles("admin"),
   getAdminAllCourses
 );
 
-courseRouter.get("/get-course-content/:id", isAutheticated, getCourseByUser);
+courseRouter.get("/get-course-content/:id", isAuthenticated, getCourseByUser);
 
-courseRouter.put("/add-question", isAutheticated, addQuestion);
+courseRouter.put("/add-question", isAuthenticated, addQuestion);
 
-courseRouter.put("/add-answer", isAutheticated, addAnwser);
+courseRouter.put("/add-answer", isAuthenticated, addAnwser);
 
-courseRouter.put("/add-review/:id", isAutheticated, addReview);
+courseRouter.put("/add-review/:id", isAuthenticated, addReview);
 
 courseRouter.put(
   "/add-reply",
-  isAutheticated,
+  isAuthenticated,
   authorizeRoles("admin"),
   addReplyToReview
 );
@@ -60,7 +60,7 @@ courseRouter.post("/getVdoCipherOTP", generateVideoUrl);
 
 courseRouter.delete(
   "/delete-course/:id",
-  isAutheticated,
+  isAuthenticated,
   authorizeRoles("admin"),
   deleteCourse
 );
