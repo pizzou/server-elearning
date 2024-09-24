@@ -16,6 +16,7 @@ import {
 } from "../services/user.service";
 import cloudinary from "cloudinary";
 
+
 // register user
 interface IRegistrationBody {
   name: string;
