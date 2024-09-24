@@ -24,22 +24,35 @@ const refreshTokenOptions = {
   secure: process.env.NODE_ENV === "production",
 };
 
-export const sendToken = (user: IUser, statusCode: number, res: Response) => {
-  // Generate tokens
-  const accessToken = user.SignAccessToken();
-  const refreshToken = user.SignRefreshToken();
+export const sendToken = async (user: IUser, statusCode: number, res: Response) => {
+  try {
+    // Generate tokens
+    const accessToken = user.SignAccessToken();
+    const refreshToken = user.SignRefreshToken();
 
-  // Store the user session in Redis
-  redis.set(user._id, JSON.stringify(user));
+    if (!accessToken || !refreshToken) {
+      throw new Error("Token generation failed");
+    }
 
-  // Set tokens in cookies
-  res.cookie("access_token", accessToken, accessTokenOptions);
-  res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+    // Store the user session in Redis
+    await redis.set(user._id.toString(), JSON.stringify(user));
 
-  // Send response with success and user data (optional, you can include tokens if needed)
-  res.status(statusCode).json({
-    success: true,
-    user,
-    message: "Tokens have been set in cookies",
-  });
+    // Set tokens in cookies
+    res.cookie("access_token", accessToken, accessTokenOptions);
+    res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+
+    // Send response with success and user data
+    res.status(statusCode).json({
+      success: true,
+      user,
+      message: "Tokens have been set in cookies",
+    });
+  } catch (error) {
+    // Error handling for any issues in the process
+    console.error("Error setting tokens or storing session:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error. Failed to set tokens.",
+    });
+  }
 };
