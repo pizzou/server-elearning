@@ -7,7 +7,7 @@ const accessTokenExpire = parseInt(process.env.ACCESS_TOKEN_EXPIRE || "300", 10)
 const refreshTokenExpire = parseInt(process.env.REFRESH_TOKEN_EXPIRE || "1200", 10); // 1200 seconds = 20 minutes
 
 // Options for the access token cookie
-const accessTokenOptions = {
+export const accessTokenOptions = {
   expires: new Date(Date.now() + accessTokenExpire * 1000), // Convert to milliseconds
   maxAge: accessTokenExpire * 1000,
   httpOnly: true,
@@ -16,7 +16,7 @@ const accessTokenOptions = {
 };
 
 // Options for the refresh token cookie
-const refreshTokenOptions = {
+export const refreshTokenOptions = {
   expires: new Date(Date.now() + refreshTokenExpire * 1000),
   maxAge: refreshTokenExpire * 1000,
   httpOnly: true,

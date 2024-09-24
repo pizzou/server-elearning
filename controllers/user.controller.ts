@@ -7,7 +7,7 @@ import jwt, { JwtPayload, Secret } from "jsonwebtoken";
 import ejs from "ejs";
 import path from "path";
 import sendMail from "../utils/sendMail";
-import { sendToken } from "../utils/jwt";
+import { accessTokenOptions, refreshTokenOptions, sendToken } from "../utils/jwt";
 import { redis } from "../utils/redis";
 import {
   getAllUsersService,
@@ -213,6 +213,21 @@ export const updateAccessToken = CatchAsyncError(
 
       req.user = user;
 
+      const accessToken= jwt.sign({id:user._id}, process.env.ACCESS_TOKEN as string, {
+        expiresIn:"5m"
+      });
+      const refreshToken= jwt.sign({id:user._id},process.env.REFRESH_TOKEN as string, {
+        expiresIn:"3d"
+      });
+
+      res.cookie("access_token", accessToken, accessTokenOptions);
+      res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+
+      res.status(200).json({
+        status:"success",
+        accessToken,
+      })
+
       await redis.set(user._id, JSON.stringify(user), "EX", 604800); // 7days
 
       return next();
@@ -223,34 +238,16 @@ export const updateAccessToken = CatchAsyncError(
 );
 
 // get user info
-export const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.user?._id;
-
-  if (!userId) {
-    return next(new ErrorHandler("User not authenticated", 401));
-  }
-
-  // Check if user exists in Redis
-  const cachedUser = await redis.get(userId);
-  
-  let user;
-  if (cachedUser) {
-    user = JSON.parse(cachedUser);
-  } else {
-    // If the session is not found in Redis, fetch from the database
-    user = await userModel.findById(userId);
-    if (!user) {
-      return next(new ErrorHandler("User not found", 404));
+export const getUserInfo = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?._id;
+      getUserById(userId, res);
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
     }
-    // Update Redis cache
-    await redis.set(userId, JSON.stringify(user), "EX", 604800); // 7 days
   }
-
-  res.status(200).json({
-    success: true,
-    user,
-  });
-});
+);
 
 interface ISocialAuthBody {
   email: string;
