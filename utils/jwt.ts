@@ -1,53 +1,45 @@
-require("dotenv").config();
 import { Response } from "express";
 import { IUser } from "../models/user.model";
 import { redis } from "./redis";
 
-interface ITokenOptions {
-  expires: Date;
-  maxAge: number;
-  httpOnly: boolean;
-  sameSite: "lax" | "strict" | "none" | undefined;
-  secure?: boolean;
-}
+// Token expiration and cookie options
+const accessTokenExpire = parseInt(process.env.ACCESS_TOKEN_EXPIRE || "300", 10); // 300 seconds = 5 minutes
+const refreshTokenExpire = parseInt(process.env.REFRESH_TOKEN_EXPIRE || "1200", 10); // 1200 seconds = 20 minutes
 
-// parse enviroment variables to integrates with fallback values
-const accessTokenExpire = parseInt(
-  process.env.ACCESS_TOKEN_EXPIRE || "300",
-  10
-);
-const refreshTokenExpire = parseInt(
-  process.env.REFRESH_TOKEN_EXPIRE || "1200",
-  10
-);
-
-// options for cookies
-export const accessTokenOptions: ITokenOptions = {
-  expires: new Date(Date.now() + accessTokenExpire * 60 * 60 * 1000),
-  maxAge: accessTokenExpire * 60 * 60 * 1000,
+// Options for the access token cookie
+const accessTokenOptions = {
+  expires: new Date(Date.now() + accessTokenExpire * 1000), // Convert to milliseconds
+  maxAge: accessTokenExpire * 1000,
   httpOnly: true,
-  sameSite: "none",
-  secure: true,
+  sameSite: "lax" as const, // Use "lax" explicitly (or "strict"/"none" if necessary)
+  secure: process.env.NODE_ENV === "production", // Secure cookies in production
 };
 
-export const refreshTokenOptions: ITokenOptions = {
-  expires: new Date(Date.now() + refreshTokenExpire * 24 * 60 * 60 * 1000),
-  maxAge: refreshTokenExpire * 24 * 60 * 60 * 1000,
+// Options for the refresh token cookie
+const refreshTokenOptions = {
+  expires: new Date(Date.now() + refreshTokenExpire * 1000),
+  maxAge: refreshTokenExpire * 1000,
   httpOnly: true,
-  sameSite: "none",
-  secure: true,
+  sameSite: "lax" as const, // Use "lax" explicitly (or "strict"/"none" if necessary)
+  secure: process.env.NODE_ENV === "production",
 };
 
 export const sendToken = (user: IUser, statusCode: number, res: Response) => {
+  // Generate tokens
   const accessToken = user.SignAccessToken();
   const refreshToken = user.SignRefreshToken();
-  // upload session to redis
-  redis.set(user._id, JSON.stringify(user) as any);
 
+  // Store the user session in Redis
+  redis.set(user._id, JSON.stringify(user));
+
+  // Set tokens in cookies
+  res.cookie("access_token", accessToken, accessTokenOptions);
+  res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+
+  // Send response with success and user data (optional, you can include tokens if needed)
   res.status(statusCode).json({
     success: true,
     user,
-    accessToken,
-    refreshToken,
+    message: "Tokens have been set in cookies",
   });
 };
