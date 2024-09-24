@@ -7,7 +7,7 @@ import jwt, { JwtPayload, Secret } from "jsonwebtoken";
 import ejs from "ejs";
 import path from "path";
 import sendMail from "../utils/sendMail";
-import { sendToken } from "../utils/jwt";
+import { accessTokenOptions, refreshTokenOptions, sendToken } from "../utils/jwt";
 import { redis } from "../utils/redis";
 import {
   getAllUsersService,
@@ -211,11 +211,27 @@ export const updateAccessToken = CatchAsyncError(
 
       const user = JSON.parse(session);
 
-      req.user = user;
+      const accessToken= jwt.sign(
+        {id:user._id}, process.env.ACCESS_TOKEN as string,
+{
+  expiresIn:"5m",
+}      );
 
-      await redis.set(user._id, JSON.stringify(user), "EX", 604800); // 7days
-
-      return next();
+const refreshToken = jwt.sign(
+  {
+    id:user._id
+  },
+  process.env.REFRECH_TOKEN as string,
+  {
+    expiresIn:"3d"
+  }
+);
+res.cookie("access_token", accessToken, accessTokenOptions);
+res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+res.status(200).json({
+  status:"success",
+  accessToken
+})
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
     }
