@@ -223,16 +223,34 @@ export const updateAccessToken = CatchAsyncError(
 );
 
 // get user info
-export const getUserInfo = CatchAsyncError(
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const userId = req.user?._id;
-      getUserById(userId, res);
-    } catch (error: any) {
-      return next(new ErrorHandler(error.message, 400));
-    }
+export const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user?._id;
+
+  if (!userId) {
+    return next(new ErrorHandler("User not authenticated", 401));
   }
-);
+
+  // Check if user exists in Redis
+  const cachedUser = await redis.get(userId);
+  
+  let user;
+  if (cachedUser) {
+    user = JSON.parse(cachedUser);
+  } else {
+    // If the session is not found in Redis, fetch from the database
+    user = await userModel.findById(userId);
+    if (!user) {
+      return next(new ErrorHandler("User not found", 404));
+    }
+    // Update Redis cache
+    await redis.set(userId, JSON.stringify(user), "EX", 604800); // 7 days
+  }
+
+  res.status(200).json({
+    success: true,
+    user,
+  });
+});
 
 interface ISocialAuthBody {
   email: string;
