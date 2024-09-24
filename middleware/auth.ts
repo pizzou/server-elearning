@@ -6,38 +6,40 @@ import { redis } from "../utils/redis";
 import { updateAccessToken } from "../controllers/user.controller";
 
 // authenticated user
-export const isAutheticated = CatchAsyncError(
+export const isAuthenticated = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
-    const access_token = req.headers["access-token"] as string;
-    if (!access_token) {
+    const accessToken = req.headers["access-token"] as string | undefined;
+
+    if (!accessToken) {
       return next(
-        new ErrorHandler("Please login to access this resource", 400)
+        new ErrorHandler("Please login to access this resource", 401) // 401 for unauthorized
       );
     }
-    const decoded = jwt.decode(access_token) as JwtPayload
-    if (!decoded) {
-      return next(new ErrorHandler("access token is not valid", 400));
-    }
 
-    // check if the access token is expired
-    if (decoded.exp && decoded.exp <= Date.now() / 1000) {
-      try {
+    try {
+      const decoded = jwt.decode(accessToken) as JwtPayload;
+
+      if (!decoded) {
+        return next(new ErrorHandler("Access token is not valid", 400));
+      }
+
+      // Check if the access token is expired
+      if (decoded.exp && decoded.exp <= Date.now() / 1000) {
         await updateAccessToken(req, res, next);
-      } catch (error) {
-        return next(error);
+      } else {
+        const user = await redis.get(decoded.id);
+
+        if (!user) {
+          return next(
+            new ErrorHandler("Please login to access this resource", 401)
+          );
+        }
+
+        req.user = JSON.parse(user);
+        next();
       }
-    } else {
-      const user = await redis.get(decoded.id);
-
-      if (!user) {
-        return next(
-          new ErrorHandler("Please login to access this resource", 400)
-        );
-      }
-
-      req.user = JSON.parse(user);
-
-      next();
+    } catch (error: any) {
+      return next(new ErrorHandler("Token validation failed", 400));
     }
   }
 );
