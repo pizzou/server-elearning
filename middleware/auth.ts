@@ -11,11 +11,11 @@ export const isAuthenticated = CatchAsyncError(
     console.log("Request Headers:", req.headers);
     console.log("Request Cookies:", req.cookies);
 
-    // Try to retrieve the access token from either the Authorization header or cookies
+    // Retrieve the access token from either the Authorization header or cookies
     const authHeader = req.headers.authorization;
     const accessToken = authHeader && authHeader.startsWith("Bearer ")
       ? authHeader.split(" ")[1]
-      : req.cookies['access_token'];
+      : req.cookies['access_token'];  // Ensure that the access token is properly set in cookies
 
     console.log("Access Token:", accessToken);
 
@@ -28,7 +28,7 @@ export const isAuthenticated = CatchAsyncError(
       // Ensure you are using the correct secret
       const secret = process.env.ACCESS_TOKEN || 'your_jwt_secret';
       
-      // Verify token, handle expired tokens explicitly here
+      // Verify token and handle expired tokens explicitly here
       const decoded = jwt.verify(accessToken, secret) as JwtPayload;
 
       if (!decoded) {
@@ -41,6 +41,7 @@ export const isAuthenticated = CatchAsyncError(
         console.log("Token expired, attempting to refresh...");
         // Handle token expiration: possibly generate a new access token
         await updateAccessToken(req, res, next);
+        return; // Stop further execution since the token is being refreshed
       } else {
         // Fetch the user from Redis using the decoded ID
         const user = await redis.get(decoded.id);
@@ -83,7 +84,3 @@ export const authorizeRoles = (...roles: string[]) => {
     next();
   };
 };
-
-
-
-
