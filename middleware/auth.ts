@@ -6,43 +6,59 @@ import { redis } from "../utils/redis";
 import { updateAccessToken } from "../controllers/user.controller";
 
 // authenticated user
+
+
+import cookieParser from 'cookie-parser'; // make sure to use cookie-parser in your app
+
 export const isAuthenticated = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
-    const accessToken = req.headers["access-token"] as string | undefined;
+    // Log headers and cookies for debugging
+    console.log("Request Headers:", req.headers);
+    console.log("Request Cookies:", req.cookies);
+
+    // Try to get the access token from headers or cookies
+    const authHeader = req.headers.authorization;
+    const accessToken = authHeader && authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : req.cookies['access_token']; // Check if the token is in the cookies
+
+    console.log("Access Token:", accessToken);
 
     if (!accessToken) {
-      return next(
-        new ErrorHandler("Please login to access this resource", 401) // 401 for unauthorized
-      );
+      console.log("Access token not provided");
+      return next(new ErrorHandler("Please login to access this resource", 401));
     }
 
     try {
-      const decoded = jwt.decode(accessToken) as JwtPayload;
+      const decoded = jwt.verify(accessToken, process.env.JWT_SECRET || 'your_jwt_secret') as JwtPayload;
 
       if (!decoded) {
+        console.log("Invalid token");
         return next(new ErrorHandler("Access token is not valid", 400));
       }
 
-      // Check if the access token is expired
       if (decoded.exp && decoded.exp <= Date.now() / 1000) {
+        console.log("Token expired, trying to refresh...");
         await updateAccessToken(req, res, next);
       } else {
         const user = await redis.get(decoded.id);
 
         if (!user) {
-          return next(
-            new ErrorHandler("Please login to access this resource", 401)
-          );
+          console.log("User not found in Redis");
+          return next(new ErrorHandler("Please login to access this resource", 401));
         }
 
         req.user = JSON.parse(user);
         next();
       }
     } catch (error: any) {
-      return next(new ErrorHandler("Token validation failed", 400));
+      console.log("Error in token validation:", error);
+      return next(new ErrorHandler("Token validation failed", 401));
     }
   }
 );
+
+
 
 // validate user role
 export const authorizeRoles = (...roles: string[]) => {
