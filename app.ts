@@ -16,8 +16,8 @@ export const app = express();
 
 // CORS configuration
 const allowedOrigins = [
-  // 'http://localhost:3000',        
-  'https://client-6x3u.vercel.app' // Deployed frontend on Vercel
+  'http://localhost:3000',        
+  'https://client-6x3u.vercel.app' 
 ];
 
 app.use(cors({

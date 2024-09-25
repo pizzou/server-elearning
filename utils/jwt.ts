@@ -11,7 +11,7 @@ export const accessTokenOptions = {
   expires: new Date(Date.now() + accessTokenExpire * 1000), // Convert to milliseconds
   maxAge: accessTokenExpire * 1000,
   httpOnly: true,
-  sameSite: "lax" as const, // Use "lax" explicitly (or "strict"/"none" if necessary)
+  sameSite: "none" as const, // Use "lax" explicitly (or "strict"/"none" if necessary)
   secure: process.env.NODE_ENV === "production", // Secure cookies in production
 };
 
