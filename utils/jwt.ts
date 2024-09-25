@@ -39,7 +39,11 @@ export const sendToken = async (user: IUser, statusCode: number, res: Response) 
 
     // Set tokens in cookies
     res.cookie("access_token", accessToken, accessTokenOptions);
-    res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+
+console.log("Access Token Set:", accessToken);
+console.log("Refresh Token Set:", refreshToken);
+
 
     // Send response with success and user data
     res.status(statusCode).json({
